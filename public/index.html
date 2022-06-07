@@ -5,8 +5,11 @@
     <!-- dd -->
     <script src="https://gftruj.github.io/webzamples/aframe/controls/oculus-thumbstick-controls.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.misc.min.js"></script>
-    <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js"></script>
 
+    <script src="https://unpkg.com/super-hands/dist/super-hands.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@^4.1.1/dist/aframe-event-set-component.min.js"></script>
+    <script src="https://unpkg.com/aframe-physics-extras/dist/aframe-physics-extras.min.js"></script>
   </head>
   <script>
     AFRAME.registerComponent('x-button-listener', {
@@ -14,17 +17,19 @@
     var el = this.el;
 
     el.addEventListener('mouseenter', function (evt) {
-      console.log("el-->", el)
       el.setAttribute("scale", {
-            x: 0.2,
-            y: 2,
-            z: 2.2
+            x: 1.5,
+            y: 1.5,
+            z: 1.5
           })
     });
   }
 });
   </script>
       <script>
+        document.querySelector("#rig").object3D.position.set(1, 1, 1);
+
+
         let a = document.getElementById("gummy1")
         a.addEventListener("ondrag", function () {
           alert("okay")
@@ -34,9 +39,21 @@
             z: 2.2
           })
         })
+
+        AFRAME.registerComponent('phase-shift', {
+        init: function () {
+          var el = this.el
+          el.addEventListener('gripdown', function () {
+            el.setAttribute('collision-filter', {collisionForces: true})
+          })
+          el.addEventListener('gripup', function () {
+            el.setAttribute('collision-filter', {collisionForces: false})
+          })
+        }
+      });
       </script>
   <body>
-    <a-scene>
+    <a-scene physics=>
     
     
     <!-- Adding all the assets -->
@@ -62,23 +79,20 @@
     <!-- Adding Camera -->
     <a-entity 
       id="rig"
-      movement-controls
-      tracked-controls="controller: 0; idPrefix: OpenVR"
+      movement-controls="fly: true"
+      position="12 2 5"
+      rotation="0 60 0"
     >
     
     <a-camera look-controls="enabled: true"    
-    position="20 5 8"
     wasd-controls="enabled: true; acceleration:50" 
-    rotation="35 180 0">
+    >
       <a-cursor></a-cursor>
       <!-- <a-entity cursor raycaster="far: 20; interval: 1000; objects: .clickable"></a-entity> -->
     </a-camera>
       <!-- Adding controller to oculus -->
-      <!-- <a-entity laser-controls="hand: left" raycaster="objects: .clickable; lineColor: yellow; far: 50;" oculus-thumbstick-controls></a-entity>
-      <a-entity laser-controls="hand: right" raycaster="objects: .clickable; lineColor: pink; far: 50;" oculus-thumbstick-controls></a-entity> -->
-
-      <a-entity sphere-collider="objects: a-box" super-hands laser-controls="hand: left" raycaster="objects: .clickable; lineColor: yellow; far: 50;" oculus-thumbstick-controls id="leftHand" hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
-      <a-entity sphere-collider="objects: a-box" super-hands laser-controls="hand: right" raycaster="objects: .clickable; lineColor: pink; far: 50;" oculus-thumbstick-controls id="leftHand" hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
+      <a-entity sphere-collider="objects: .gummy1, .gummy2, .gummy3, .cart" super-hands laser-controls="hand: left" raycaster="objects: .gummy1, .gummy2, .gummy3; lineColor: yellow; far: 50;" oculus-thumbstick-controls hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
+      <a-entity sphere-collider="objects: .gummy1, .gummy2, .gummy3, .cart" super-hands laser-controls="hand: right" raycaster="objects: .gummy1, .gummy2, .gummy3; lineColor: pink; far: 50;" oculus-thumbstick-controls hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"></a-entity>
       <!-- <a-entity oculus-touch-controls x-button-listener></a-entity> -->
     </a-entity>
 
@@ -89,7 +103,6 @@
       height="5"
       depth="0.1"
       rotation="0 90 0"
-      hoverable grabbable stretchable draggable dropppable
     >
       <!-- top shelf -->
       <a-box
@@ -97,14 +110,12 @@
       depth="0.9"
       height="0.05"
       position="0 2 0.5"
-      hoverable grabbable stretchable draggable dropppable
       ></a-box>
       <a-box
       width="5"
       depth="0.9"
       height="0.05"
       position="0 1 0.5"
-      hoverable grabbable stretchable draggable dropppable
       >
     
     </a-box>
@@ -114,12 +125,47 @@
       depth="0.9"
       height="0.05"
       position="0 0 0.5"
-      hoverable grabbable stretchable draggable dropppable
       >
       <!-- Adding gummy bear -->
-      <a-entity id="gummy1" gltf-model="#gummy" background="color: red" position="0 0.38 0" rotation="0 -180 0" x-button-listener></a-entity>
-      <a-entity gltf-model="#gummy" color="#fff" position="2 0.38 0" rotation="0 -180 0" x-button-listener></a-entity>
-      <a-entity gltf-model="#gummy" position="-2 0.38 0" rotation="0 -180 0" x-button-listener></a-entity>
+      <!-- <a-entity class="gummy1" gltf-model="#gummy" position="0 0.38 0" rotation="0 -180 0" x-button-listener></a-entity> -->
+      <a-entity 
+        class="gummy1" 
+        gltf-model="#gummy"
+        position="0 0.32 0" 
+        rotation="0 -180 0" 
+        scale="0.7 0.7 0.7"  
+        grabbable
+        draggable
+        dynamic-body
+        event-set__start="_event: grab-start; _target: .gummy1; position: 0 0.38 0"
+        event-set__end="_event: grab-end; _target: .gummy1; position: -1 -1 2.5"
+      ></a-entity>
+      
+      
+      <a-entity class="gummy2" 
+        gltf-model="#gummy" 
+        color="#fff" 
+        position="2 0.32 0" 
+        rotation="0 -180 0" 
+        scale="0.7 0.7 0.7" 
+        grabbable
+        draggable
+        dynamic-body
+        event-set__start="_event: grab-start; _target: .gummy2; scale: 0.4 0.4 0.4;"
+        event-set__end="_event: grab-end; _target: .gummy2; scale: 1.4 1.4 1.4;"
+      ></a-entity>
+
+      <a-entity class="gummy3" 
+        gltf-model="#gummy" 
+        position="-2 0.32 0" 
+        rotation="0 -180 0" 
+        scale="0.7 0.7 0.7"  
+        grabbable
+        draggable
+        dynamic-body
+        event-set__start="_event: grab-start; _target: .gummy3; scale: 0.4 0.4 0.4;"
+        event-set__end="_event: grab-end; _target: .gummy3; scale: 1.4 1.4 1.4;"
+      ></a-entity>
       </a-box>
       <!-- bottom-shelf -->
       <a-box
@@ -135,7 +181,14 @@
 
       </a-box>
 
-      <a-entity gltf-model="#cart" position="-1 -2 3" rotation="0 -125 0" scale="1.5 1.5 1.5"></a-entity>
+      <a-entity class="cart" 
+        class="cart"
+        gltf-model="#cart" 
+        position="-1 -2 3" 
+        rotation="0 -125 0" 
+        scale="1.5 1.5 1.5" 
+        grabbable="invert: true;" 
+        ></a-entity>
       
     </a-box>
      
@@ -148,6 +201,7 @@
       position="10 0 0 "
       src="./floor.jpeg"
       rotation="-90 30 0"
+      static-body
       />
 </a-scene>
 
